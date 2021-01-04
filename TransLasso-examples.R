@@ -1,33 +1,32 @@
 ###An example
 ##coefficient generating functions used in the simulation
 Coef.gen<- function(s, h,q=30, size.A0, M, sig.beta,sig.delta1, sig.delta2, p, exact=T){
-  beta0 <- c(rep(sig.beta, s), rep(0, p - s))
-  W <- matrix(0, nrow = p, ncol = M)# ten prior estimates
-  samp0<- sample(1:p, h, replace=F)
+  beta0 <- c(rep(sig.beta,s), rep(0, p - s))
+  W <- rep.col(beta0,  M)# ten prior estimates
+  W[1,]<-W[1,]-2*sig.beta
   for(k in 1:M){
     if(k <= size.A0){
-      W[,k]<-beta0   ###h^*=0
       if(exact){
-        W[samp0,k] <-W[samp0,k] + rep(-sig.delta1,h)
+        samp0<- sample(1:p, h, replace=F)
+        W[samp0,k] <-W[samp0,k] + rep(-sig.delta1, h)
       }else{
-        W[1:(p/2),k] <-W[1:(p/2),k] + rnorm(p/2, 0, h/p*2)
+        W[1:100,k] <-W[1:100,k] + rnorm(100, 0, h/100)
       }
-      
     }else{
-      W[,k]<-0
-      samp1 <- sample(1:p, q, replace = F)
       if(exact){
-        W[samp1,k] <-W[samp1,k] + rep(-sig.delta2,q)
+        samp1 <- sample(1:p, q, replace = F)
+        W[samp1,k] <- W[samp1,k] + rep(-sig.delta2,q)
       }else{
-        W[1:(p/2),k] <-W[1:(p/2),k] + rnorm(p/2, 0, sig.delta2)
+        W[1:100,k] <-W[1:100,k] + rnorm(100, 0, q/100)
       }
     }
   }
+  
   return(list(W=W, beta0=beta0))
 }
 
 
-source("~/TransLasso-functions.R")
+source("TransLasso-functions.R")
 set.seed(123)
 p = 500
 s = 16
@@ -47,7 +46,7 @@ h=6
 A0 = 1:size.A0
 beta0<- 
 coef.all <-Coef.gen( s, h = h, q = 2*s, size.A0 = size.A0,  M = M,   sig.beta = sig.beta,
-             sig.delta1 = sig.beta, sig.delta2 = sig.beta, p = p, exact=F)
+             sig.delta1 = sig.beta, sig.delta2 = sig.beta+0.2, p = p, exact=F)
 B <- cbind(coef.all$beta0, coef.all$W)
 beta0 <- coef.all$beta0
 
